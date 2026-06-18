@@ -1,7 +1,51 @@
-const getProfile = async (req,res) => {
+const User = require("../models/User");
+
+const getProfile = async (req, res) => {
     res.status(200).json({
-        User: req.User
+        user: req.user
     });
 }
 
-module.exports = { getProfile };
+const updateProfile = async (req, res) => {
+    try {
+        const {
+            bio,
+            city,
+            skillsOffered,
+            skillsWanted
+        } = req.body;
+
+        const user = await User.findById(req.user._id);
+
+        if (!user) {
+            return res.status(401).json({
+                message: "user not found"
+            });
+        }
+        user.bio = bio || user.bio;
+        user.city = city || user.city;
+
+        if (skillsOffered) {
+            user.skillsOffered = skillsOffered;
+        }
+        if (skillsWanted) {
+            user.skillsWanted = skillsWanted;
+        }
+
+        const updatedUser = await user.save();
+
+        res.status(200).json({
+            message: "Profile updated succesfully",
+
+            user: updatedUser
+
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            message: error.message
+        });
+    }
+}
+
+module.exports = { getProfile, updateProfile };

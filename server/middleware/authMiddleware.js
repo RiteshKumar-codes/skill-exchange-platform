@@ -19,7 +19,7 @@ const protect = async (req, res, next) => {
             token,
             process.env.JWT_SECRET
         );
-        req.User = await User.findById(decode.userId).select("-password");
+        req.user = await User.findById(decode.userId).select("-password");
         next();
     } catch (error) {
         return res.status(401).json({
