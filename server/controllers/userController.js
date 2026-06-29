@@ -1,5 +1,7 @@
 const User = require("../models/User");
 
+
+
 const getProfile = async (req, res) => {
     res.status(200).json({
         user: req.user
@@ -48,4 +50,38 @@ const updateProfile = async (req, res) => {
     }
 }
 
-module.exports = { getProfile, updateProfile };
+const getMatches = async (req,res) => {
+    try{
+        const currentUser = await User.findById(req.user._id);
+
+        const users = await User.find({
+           _id: {$ne: currentUser._id}
+        }).select("-password");
+
+        const matches = users.filter(user => {
+            const canTeachMe = 
+            currentUser.skillsWanted.some(skill =>
+                user.skillsOffered.includes(skill)
+            );
+
+            const iCanTeach = 
+            currentUser.skillsOffered.some(skill =>
+                user.skillsWanted.includes(skill)
+            );
+
+            return canTeachMe && iCanTeach;
+        });
+
+        res.status(200).json({
+            totalMatches:matches.length,
+            matches
+        });
+    }
+    catch(error){
+        res.status(500).json({
+            message: error.message
+        });
+    }
+};
+
+module.exports = { getProfile, updateProfile,getMatches };
