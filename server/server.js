@@ -5,6 +5,7 @@ const authRoutes = require("./routes/authRoutes")
 const userRoutes = require("./routes/userRoutes");
 const connectionRoutes = require("./routes/connectionRoutes");
 const sessionRoutes = require("./routes/sessionRoutes");
+const reviewRoutes = require("./routes/reviewRoutes");
 
 const connectDB = require("./config/db");
 
@@ -19,6 +20,7 @@ app.use("/api/auth",authRoutes);
 app.use("/api/users",userRoutes);
 app.use("/api/connections",connectionRoutes);
 app.use("/api/sessions",sessionRoutes);
+app.use("/api/reviews",reviewRoutes);
 
 app.get("/",(req,res)=>{
    res.send("Skill Exchange Platform API Running");
