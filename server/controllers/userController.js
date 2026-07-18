@@ -1,4 +1,5 @@
 const User = require("../models/User");
+const { options } = require("../routes/userRoutes");
 
 
 
@@ -84,4 +85,34 @@ const getMatches = async (req,res) => {
     }
 };
 
-module.exports = { getProfile, updateProfile,getMatches };
+const searchUsers = async(req,res) => {
+    try{
+        const {skill,city} = req.query;
+
+        let query = {};
+        if(skill){
+            query.skillsOffered = {
+                $in: [skill]
+            };
+        }
+        if(city){
+            query.city = {
+                $regex:city,
+                $options: "i"
+            }
+        }
+
+        const users = await User.find(query).select("-password");
+
+        res.status(200).json({
+            count: users.length,
+            users
+        });
+    } catch(error){
+        res.status(500).json({
+            message: error.message
+        });
+    }
+};
+
+module.exports = { getProfile, updateProfile,getMatches, searchUsers };

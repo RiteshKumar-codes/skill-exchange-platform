@@ -33,4 +33,7 @@ const userSchema = new mongoose.Schema({
     timestamps: true
 });
 
+userSchema.index({city: 1});
+userSchema.index({skillsOffered: 1});
+
 module.exports = mongoose.model("User",userSchema);
