@@ -1,13 +1,14 @@
-const Connection = require("../models/Connecton");
+const Connection = require("../models/Connection");
 const User = require("../models/User")
+const Notification = require("../models/Notification");
 
 // Send request
 
-const sendRequest = async (req,res) => {
-    try{
-        const reciverId = req.params.userId;
+const sendRequest = async (req, res) => {
+    try {
+        const receiverId = req.params.userId;
 
-        if(reciverId===req.user._id.toString()){
+        if (receiverId === req.user._id.toString()) {
             return res.status(400).json({
                 message: "Cannot send request to yourself"
             });
@@ -15,25 +16,35 @@ const sendRequest = async (req,res) => {
 
         const existingRequest = await Connection.findOne({
             sender: req.user._id,
-            reciver: reciverId
+            receiver: receiverId
         });
 
-        if(existingRequest){
+
+
+        if (existingRequest) {
             return res.status(400).json({
-                message: "Request alredy send"
+                message: "Request already send"
             });
         }
 
+
         const request = await Connection.create({
             sender: req.user._id,
-            reciver: reciverId
+            receiver: receiverId
+        });
+
+        await Notification.create({
+            recipient: receiverId,
+            message: `${req.user.name} sent you a connection request`,
+            type: "connection"
         });
 
         res.status(201).json({
             message: "Requst sent",
             request
         });
-    } catch(error){
+    } catch (error) {
+        console.error("ERROR:", error);
         res.status(500).json({
             message: error.message
         });
@@ -42,20 +53,20 @@ const sendRequest = async (req,res) => {
 
 // get requests
 
-const getRequests = async (req,res) => {
-    try{
+const getRequests = async (req, res) => {
+    try {
         const requests = await Connection.find({
-            reciver: req.user._id,
+            receiver: req.user._id,
             status: "pending"
         }).populate(
             "sender",
-            "name email skillsOfferd skillsWanted"
+            "name email skillsOffered skillsWanted"
         );
         res.status(200).json({
-            count: req.length,
+            count: requests.length,
             requests
         });
-    } catch(error){
+    } catch (error) {
         res.status(500).json({
             message: error.message
         });
@@ -64,23 +75,29 @@ const getRequests = async (req,res) => {
 
 // accept request
 
-const acceptRequest = async (req,res) => {
-    try{
+const acceptRequest = async (req, res) => {
+    try {
         const request = await Connection.findById(req.params.id);
 
-        if(!request){
+        if (!request) {
             return res.status(404).json({
                 message: "Request not found"
             });
         }
-        request.status = "accapted"
+        request.status = "accepted"
 
         await request.save();
+
+        await Notification.create({
+            recipient: request.sender,
+            message: "Your connection request was accepted",
+            type: "connection"
+        });
 
         res.status(200).json({
             message: "Request accepted"
         });
-    } catch(error){
+    } catch (error) {
         res.status(500).json({
             message: error.message
         });
@@ -89,25 +106,25 @@ const acceptRequest = async (req,res) => {
 
 // reject request
 
-const rejectRequest = async (req,res) => {
-    try{
+const rejectRequest = async (req, res) => {
+    try {
         const request = await Connection.findById(req.params.id);
 
-        if(!request){
+        if (!request) {
             return res.status(404).json({
                 message: "Request not found"
             });
         }
         request.status = "rejected";
         await request.save();
-        
+
         res.status(200).json({
             message: "Request rejected"
         });
 
-    } catch(error){
+    } catch (error) {
         res.status(500).json({
-            messege: error.message
+            message: error.message
         });
     }
 };

@@ -16,6 +16,12 @@ const createReview = async (req, res) => {
             comment
         });
 
+        await Notification.create({
+            recipient: reviewee,
+            message: "You recieved a new review",
+            type: "review"
+        });
+
         // updating average rating
         const reviews = await Review.find({ reviewee });
 

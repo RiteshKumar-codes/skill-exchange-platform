@@ -16,6 +16,12 @@ const createSession = async (req,res) => {
             sessionDate
         });
 
+        await Notification.create({
+            recipient: learner,
+            message: `New ${skill} session scheduled`,
+            type: "session"
+        });
+
         res.status(201).json({
             message: "Session created"
         });

@@ -7,7 +7,7 @@ const connectionSchema = new mongoose.Schema(
             ref: "User",
             required: true
         },
-        reciver: {
+        receiver: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "User",
             required: true
