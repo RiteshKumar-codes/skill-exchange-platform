@@ -42,5 +42,10 @@ const userSchema = new mongoose.Schema({
 
 userSchema.index({city: 1});
 userSchema.index({skillsOffered: 1});
+userSchema.index({rating: -1});
+userSchema.index({createdAt: -1});
+userSchema.index({name: 1});
+
+
 
 module.exports = mongoose.model("User",userSchema);

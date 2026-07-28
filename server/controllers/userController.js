@@ -87,7 +87,7 @@ const getMatches = async (req,res) => {
 
 const searchUsers = async(req,res) => {
     try{
-        const {skill,city} = req.query;
+        const {skill,city,name,page=1,limit= 10,sort = "createdAt"} = req.query;
 
         let query = {};
         if(skill){
@@ -101,11 +101,37 @@ const searchUsers = async(req,res) => {
                 $options: "i"
             }
         }
+        if(name){
+            query.name = {
+                $regex: name,
+                $options: "i"
+            };
+        }
 
-        const users = await User.find(query).select("-password");
+        const pageNumber = Number(page);
+        const limitNumber = Number(limit);
 
+        const skip = (pageNumber-1) * limitNumber;
+
+        const totalUsers = await User.countDocuments(query);
+
+
+        const sortOrder = req.query.order === "desc" ? -1 : 1;
+
+        if(pageNumber<1 || limitNumber<1){
+            return res.status(400).json({
+                message: "page and limit must be greater than 0."
+            });
+        }
+
+
+        const users = await User.find(query).select("-password").sort({ [sort]: sortOrder}).skip(skip).limit(limitNumber);
         res.status(200).json({
-            count: users.length,
+            currentPage: pageNumber,
+            totalPage: Math.ceil(
+                totalUsers/limitNumber
+            ),
+            totalUsers,
             users
         });
     } catch(error){
