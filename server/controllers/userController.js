@@ -1,5 +1,6 @@
 const User = require("../models/User");
 const { options } = require("../routes/userRoutes");
+const imagekit = require("../config/imagekit");
 
 
 
@@ -50,6 +51,7 @@ const updateProfile = async (req, res) => {
         });
     }
 }
+
 
 const getMatches = async (req,res) => {
     try{
@@ -141,4 +143,33 @@ const searchUsers = async(req,res) => {
     }
 };
 
-module.exports = { getProfile, updateProfile,getMatches, searchUsers };
+const uploadProfileImage = async(req,res) => {
+    try{
+        if(!req.file){
+            return res.status(400).json({
+                message: "No image upload"
+            });
+        }
+
+        const result = await imagekit.upload({
+            file: req.file.buffer,
+
+            fileName: `${Date.now()}-${req.file.originalname}`
+        });
+
+        req.user.profileImage = result.url;
+
+        await req.user.save();
+
+        res.status(200).json({
+            message: "Profile image uploaded",
+            image: result.url
+        });
+    } catch(error){
+        res.status(500).json({
+            message: error.message
+        });
+    }
+};
+
+module.exports = { getProfile, updateProfile,getMatches, searchUsers, uploadProfileImage };

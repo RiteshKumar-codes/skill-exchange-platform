@@ -14,6 +14,10 @@ const userSchema = new mongoose.Schema({
         type : String,
         required : true
     },
+    profileImage: {
+        type: String,
+        default: ""
+    },
     bio : {
         type : String,
         default : ""
@@ -35,6 +39,7 @@ const userSchema = new mongoose.Schema({
         type : Number,
         default : 0
     }
+    
 },
 {
     timestamps: true
