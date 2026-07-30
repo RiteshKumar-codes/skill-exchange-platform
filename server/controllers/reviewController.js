@@ -1,5 +1,6 @@
 const Review = require("../models/Review");
 const User = require("../models/User");
+const { connectedUsers } = require("../socket/socket");
 
 const createReview = async (req, res) => {
     try {
@@ -15,6 +16,22 @@ const createReview = async (req, res) => {
             rating,
             comment
         });
+
+        const io = req.app.get("io");
+
+        const socketId = connectedUsers.get(reviewee.toString());
+
+        if(socketId){
+
+            io.to(soketId).emit(
+
+                "newNotification",
+                {
+                    message: "You recived a new review",
+                    type: "review"
+                }
+            );
+        }
 
         await Notification.create({
             recipient: reviewee,

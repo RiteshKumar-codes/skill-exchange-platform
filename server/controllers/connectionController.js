@@ -1,6 +1,7 @@
 const Connection = require("../models/Connection");
 const User = require("../models/User")
 const Notification = require("../models/Notification");
+const {connectedUsers} = require("../socket/socket");
 
 // Send request
 
@@ -38,6 +39,21 @@ const sendRequest = async (req, res) => {
             message: `${req.user.name} sent you a connection request`,
             type: "connection"
         });
+
+        const io = req.app.get("io");
+
+        const receiverSocketId = connectedUsers.get(receiverId);
+
+        if(receiverSocketId){
+
+            io.to(receiverSocketId).emit(
+                "newNotification",
+                {
+                    message: `${req.user.name} sent you a connection request`,
+                    type: "connection"
+                }
+            );
+        }
 
         res.status(201).json({
             message: "Requst sent",

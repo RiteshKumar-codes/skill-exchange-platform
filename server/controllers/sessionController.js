@@ -1,4 +1,5 @@
 const Session = require("../models/Session");
+const { connectedUsers } = require("../socket/socket");
 
 const createSession = async (req,res) => {
     try{
@@ -21,6 +22,21 @@ const createSession = async (req,res) => {
             message: `New ${skill} session scheduled`,
             type: "session"
         });
+
+        const io = req.app.get("io");
+
+        const socketId = connectedUsers.get(learner.toString());
+
+        if(socketId){
+
+            io.to(socketId).emit(
+                "newNotification",
+                {
+                message: `session scheduled`,
+                type: "session"
+                }
+            );
+        }
 
         res.status(201).json({
             message: "Session created"

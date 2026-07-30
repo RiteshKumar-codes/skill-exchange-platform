@@ -10,6 +10,9 @@ const sessionRoutes = require("./routes/sessionRoutes");
 const reviewRoutes = require("./routes/reviewRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 const adminRoutes = require("./routes/adminRoutes");
+const http = require("http");
+const {Server} = require("socket.io");
+const {initializeSocket} = require("./socket/socket");
 
 const connectDB = require("./config/db");
 
@@ -34,6 +37,18 @@ app.get("/",(req,res)=>{
 
 const PORT = 5000;
 
-app.listen(PORT,()=>{
-    console.log(`server is running on port ${PORT}`);
+const server = http.createServer(app);
+
+const io = new Server(server, {
+    cors: {
+        origin: "*"
+    }
+});
+
+initializeSocket(io);
+
+app.set("io",io);
+
+server.listen(PORT, () => {
+    console.log(`server running on ${PORT}`);
 });
