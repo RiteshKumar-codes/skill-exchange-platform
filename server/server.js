@@ -10,6 +10,7 @@ const sessionRoutes = require("./routes/sessionRoutes");
 const reviewRoutes = require("./routes/reviewRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 const adminRoutes = require("./routes/adminRoutes");
+const chatRoutes = require("./routes/chatRoutes");
 const http = require("http");
 const {Server} = require("socket.io");
 const {initializeSocket} = require("./socket/socket");
@@ -30,6 +31,7 @@ app.use("/api/sessions",sessionRoutes);
 app.use("/api/reviews",reviewRoutes);
 app.use("/api/notifications",notificationRoutes);
 app.use("/api/admin",adminRoutes);
+app.use("/api/chat", chatRoutes);
 
 app.get("/",(req,res)=>{
    res.send("Skill Exchange Platform API Running");

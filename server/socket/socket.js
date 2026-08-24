@@ -22,6 +22,20 @@ const initializeSocket = (io) => {
 
             console.log("User disconnected");
         });
+
+        socket.on("sendMessage", async(data) => {
+           const {sender, receiver, message} = data;
+
+           const receiverSocket = connectedUsers.get(receiver);
+
+           if(receiverSocket){
+            io.to(receiverSocket).emit("receiveMessage", {
+                sender,
+                message,
+                createdAt: new Data()
+            });
+           }
+        })
     });
 };
 
