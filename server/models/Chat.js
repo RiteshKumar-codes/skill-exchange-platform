@@ -19,14 +19,31 @@ const chatSchema = new mongoose.Schema(
             trim: true
         },
         
-        isRead: {
-            type: Boolean,
-            default: false
-        }
+       status: {
+        type: String,
+        enum: [
+            "sent",
+            "delivered",
+            "seen"
+        ],
+        default: "sent"
+       }
     },
     {
         timestamps: true
     }
 );
+
+chatSchema.index({
+    sender: 1,
+    receiver: 1,
+    createdAt: -1
+});
+
+chatSchema.index({
+    receiver: 1,
+    sender: 1,
+    createdAt: -1
+});
 
 module.exports = mongoose.model("Chat", chatSchema);
