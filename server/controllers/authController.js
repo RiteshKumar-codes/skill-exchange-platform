@@ -1,58 +1,73 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
+const { sendEmail } = require("../services/emailService");
+const {
+    welcomeEmail
+} = require("../services/emailTemplates");
 
 
-const registerUser = async (req,res)=>{
-    try{
-        const{name, email, password} = req.body;
+const registerUser = async (req, res) => {
+    try {
+        const { name, email, password } = req.body;
 
         // check require fields
-       if(!name || !email || !password){
-        return res.status(400).json({
-            message : "All fields are required"
-        }); 
-       }
+        if (!name || !email || !password) {
+            return res.status(400).json({
+                message: "All fields are required"
+            });
+        }
 
 
-       //check existing user
-       const existingUser = await User.findOne({email});
+        //check existing user
+        const existingUser = await User.findOne({ email });
 
-       if(existingUser){
-        return res.status(400).json({
-            message: "User already exists"
+        if (existingUser) {
+            return res.status(400).json({
+                message: "User already exists"
+            });
+        }
+
+
+        //Hash password
+        const salt = await bcrypt.genSalt(10);
+
+        const hashedPassword = await bcrypt.hash(
+            password,
+            salt
+        );
+
+        // create user
+        const user = await User.create({
+            name,
+            email,
+            password: hashedPassword
         });
-       }
-    
 
-    //Hash password
-    const salt = await bcrypt.genSalt(10);
+        sendEmail({
+            to: user.email,
+            subject: "Welcome to Skill Exchange Platform",
+            html: welcomeEmail(user.name)
+        }).catch((error) => {
+            console.error(
+                "Welcome email failed:",
+                error.message
+            );
+        });
 
-    const hashedPassword = await bcrypt.hash(
-        password,
-        salt
-    );
+        res.status(201).json({
 
-    // create user
-    const user = await User.create({
-        name,
-        email,
-        password: hashedPassword
-    });
+            message: "User Registered succesfully",
 
-    res.status(201).json({
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email
+            }
 
-         message: "User Registered succesfully",
+        });
 
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email
-      }
-
-    });
-      
-    } catch(error){
+    } catch (error) {
         res.status(500).json({
             message: error.message
         });
@@ -60,20 +75,20 @@ const registerUser = async (req,res)=>{
 }
 
 
-const loginUser = async (req,res)=>{
-    try{
-        const {email, password} = req.body;
-   
+const loginUser = async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
         // check fields
-        if(!email || !password){
+        if (!email || !password) {
             return res.status(400).json({
                 message: "Email and password required"
             });
         }
         // find user
-         const user = await User.findOne({ email });
-        
-        if(!user){
+        const user = await User.findOne({ email });
+
+        if (!user) {
             return res.status(400).json({
                 message: "Invaild credentials"
             });
@@ -85,7 +100,7 @@ const loginUser = async (req,res)=>{
             user.password
         );
 
-        if(!isMatch){
+        if (!isMatch) {
             return res.status(400).json({
                 message: "Invaild credentials"
             });
@@ -96,9 +111,9 @@ const loginUser = async (req,res)=>{
             {
                 userId: user._id
             },
-               process.env.JWT_SECRET,
+            process.env.JWT_SECRET,
             {
-               expiresIn: "7d"
+                expiresIn: "7d"
             }
         );
 
@@ -111,13 +126,13 @@ const loginUser = async (req,res)=>{
                 email: user.email
             }
         });
-    } catch(error){
+    } catch (error) {
         res.status(500).json({
             message: error.message
         });
     }
-    
+
 };
 
-module.exports = {registerUser, loginUser};
+module.exports = { registerUser, loginUser };
 

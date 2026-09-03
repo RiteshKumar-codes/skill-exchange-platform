@@ -1,7 +1,11 @@
 const Connection = require("../models/Connection");
 const User = require("../models/User")
 const Notification = require("../models/Notification");
-const {connectedUsers} = require("../socket/socket");
+const { connectedUsers } = require("../socket/socket");
+const { sendEmail } = require("../services/emailService");
+const {
+    connectionAcceptedEmail
+} = require("../services/emailTemplates");
 
 // Send request
 
@@ -44,7 +48,7 @@ const sendRequest = async (req, res) => {
 
         const receiverSocketId = connectedUsers.get(receiverId);
 
-        if(receiverSocketId){
+        if (receiverSocketId) {
 
             io.to(receiverSocketId).emit(
                 "newNotification",
@@ -110,17 +114,29 @@ const acceptRequest = async (req, res) => {
             type: "connection"
         });
 
-        res.status(200).json({
+        const senderUser = await User.findById(request.sender);
+
+        sendEmail({
+            to: senderUser.email,
+            subject: "Connection Request Accepted",
+            html: connectionAcceptedEmail()
+        }).catch((error) => {
+            console.error(
+                "Connection email failed:",
+                error.message
+            );
+        });
+
+        return res.status(200).json({
             message: "Request accepted"
         });
+
     } catch (error) {
         res.status(500).json({
             message: error.message
         });
     }
 };
-
-// reject request
 
 const rejectRequest = async (req, res) => {
     try {
