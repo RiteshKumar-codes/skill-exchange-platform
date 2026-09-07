@@ -60,9 +60,57 @@ const sessionScheduledEmail = (skill, mentorName, sessionDate, status) => {
     `;
 };
 
+const passwordResetEmail = (name, resetUrl) => {
+    return `
+        <div style="font-family: Arial, sans-serif;">
+            <h2>Password Reset Request</h2>
+
+            <p>Hello ${name},</p>
+
+            <p>
+                We received a request to reset your
+                Skill Exchange Platform password.
+            </p>
+
+            <p>
+                Click the button below to create a new password:
+            </p>
+
+            <a
+                href="${resetUrl}"
+                style="
+                    display:inline-block;
+                    padding:12px 20px;
+                    background:#2563eb;
+                    color:white;
+                    text-decoration:none;
+                    border-radius:6px;
+                "
+            >
+                Reset Password
+            </a>
+
+            <p>
+                This link will expire in 15 minutes.
+            </p>
+
+            <p>
+                If you did not request this password reset,
+                you can safely ignore this email.
+            </p>
+
+            <p>
+                Regards,<br>
+                Skill Exchange Platform
+            </p>
+        </div>
+    `;
+};
+
 
 module.exports = {
     welcomeEmail,
     connectionAcceptedEmail,
-    sessionScheduledEmail
+    sessionScheduledEmail,
+    passwordResetEmail
 };
