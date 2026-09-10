@@ -6,11 +6,16 @@ const protect = require("../middleware/authMiddleware");
 const isAdmin = require("../middleware/adminMiddleware");
 const authorizeRoles = require("../middleware/roleMiddleware");
 
-const {getStats, getAllUsers, deleteuser} = require("../controllers/adminController");
+const {getAdminStats, getAllUsers, getUserById, deleteUser} = require("../controllers/adminController");
 
-router.get("/stats",protect,isAdmin,getStats);
-router.get("/users",protect,isAdmin,getAllUsers);
-router.delete("/users/:id",protect,isAdmin,deleteuser);
+router.use(protect);
+router.use(isAdmin);
+
+router.get("/stats", getAdminStats);
+router.get("/users", getAllUsers);
+router.get("/users/:id", getUserById);
+router.delete("/users/:id", deleteUser);
+
 router.get("/dashboard", protect, authorizeRoles("admin"), (req, res) => {
     res.status(200).json({
         message: "Welcome to Admin Dashboard",

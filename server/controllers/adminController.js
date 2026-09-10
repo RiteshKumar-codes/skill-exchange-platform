@@ -5,71 +5,191 @@ const Review = require("../models/Review");
 
 // get Dashboard stats
 
-const getStats = async (req,res) => {
+const getAdminStats = async (req,res) => {
     try{
-        const totalUsers = await User.countDocuments();
-        const totalSessions = await Session.countDocuments();
-        const totalConnections = await Connection.countDocuments();
-        const totalReviews = await Review.countDocuments();
-
+         const [
+            totalUsers,
+            totalConnections,
+            totalSessions,
+            totalReviews
+        ] = await Promise.all([
+            User.countDocuments(),
+            Connection.countDocuments(),
+            Session.countDocuments(),
+            Review.countDocuments()
+        ]);
         res.status(200).json({
+            success: true,
+            stats:{
             totalUsers,
             totalSessions,
             totalConnections,
             totalReviews
+            }
         });
-    } catch(error){
+    } catch (error) {
+        console.error("Admin stats error:", error);
+
         res.status(500).json({
-            message: error.message
+            success: false,
+            message: "Failed to fetch admin statistics"
         });
     }
 };
 
 // get all users
 
-const getAllUsers = async (req,res) => {
-    try{
-        const users = await User.find().select("-password");
-        
+const getAllUsers = async (req, res) => {
+    try {
+        const {
+            page = 1,
+            limit = 10,
+            search
+        } = req.query;
+
+        const pageNumber = Math.max(Number(page), 1);
+        const limitNumber = Math.min(
+            Math.max(Number(limit), 1),
+            100
+        );
+
+        const skip =
+            (pageNumber - 1) * limitNumber;
+
+        let query = {};
+
+        if (search) {
+            query = {
+                $or: [
+                    {
+                        name: {
+                            $regex: search,
+                            $options: "i"
+                        }
+                    },
+                    {
+                        email: {
+                            $regex: search,
+                            $options: "i"
+                        }
+                    }
+                ]
+            };
+        }
+
+        const [
+            users,
+            totalUsers
+        ] = await Promise.all([
+            User.find(query)
+                .select("-password")
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limitNumber),
+
+            User.countDocuments(query)
+        ]);
+
         res.status(200).json({
-            count: users.length,
+            success: true,
+            pagination: {
+                currentPage: pageNumber,
+                totalPages:
+                    Math.ceil(
+                        totalUsers / limitNumber
+                    ),
+                totalUsers,
+                limit: limitNumber
+            },
             users
         });
-    } catch(error){
+
+    } catch (error) {
+        console.error("Get users error:", error);
+
         res.status(500).json({
-            message: error.message
+            success: false,
+            message: "Failed to fetch users"
+        });
+    }
+};
+
+// Get single user
+const getUserById = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const user = await User.findById(id)
+            .select("-password");
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            user
+        });
+
+    } catch (error) {
+        console.error("Get user error:", error);
+
+        res.status(500).json({
+            success: false,
+            message: "Failed to fetch user"
         });
     }
 };
 
 // delete user
 
-const deleteuser = async (req,res) => {
-    try{
-        const user = await User.findById(req.params.id);
+const deleteUser = async (req, res) => {
+    try {
+        const { id } = req.params;
 
-        if(req.user._id.toString() === req.params.id){
+        const user = await User.findById(id);
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+
+        // Prevent admin from deleting themselves
+        if (
+            user._id.toString() ===
+            req.user._id.toString()
+        ) {
             return res.status(400).json({
+                success: false,
                 message: "You cannot delete your own account"
             });
         }
 
-        if(!user){
-          return res.status(404).json({
-            message: "User not found"
-          });
-        }
-
-        await User.findByIdAndDelete(user._id);
+        await User.findByIdAndDelete(id);
 
         res.status(200).json({
+            success: true,
             message: "User deleted successfully"
         });
-    } catch(error){
+
+    } catch (error) {
+        console.error("Delete user error:", error);
+
         res.status(500).json({
-            message: error.message
+            success: false,
+            message: "Failed to delete user"
         });
     }
 };
 
-module.exports = {getStats, getAllUsers, deleteuser};
+module.exports = {
+    getAdminStats,
+    getAllUsers,
+    getUserById,
+    deleteUser
+};
