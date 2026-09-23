@@ -9,6 +9,8 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import NotFound from "./pages/NotFound";
 import Navbar from "./components/Navbar";
+import Profile from "./pages/Profile";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const App = () => {
   return (
@@ -32,6 +34,13 @@ const App = () => {
           path="/register"
           element={<Register />}
         />
+
+        <Route element={<ProtectedRoute />}>
+                    <Route
+                        path="/profile"
+                        element={<Profile />}
+                    />
+                </Route>
 
         <Route
           path="*"
