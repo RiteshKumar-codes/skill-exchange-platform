@@ -24,3 +24,30 @@ form {
     flex-direction: column;
     gap: 10px;
 }
+
+.profile-container {
+    max-width: 700px;
+    margin: 40px auto;
+    padding: 24px;
+    background: white;
+    border-radius: 10px;
+}
+
+.profile-container form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.profile-container input,
+.profile-container textarea {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+
+.profile-container button {
+    padding: 10px 16px;
+    border: none;
+    border-radius: 6px;
+}
