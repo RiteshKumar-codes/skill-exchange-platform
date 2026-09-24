@@ -7,6 +7,11 @@ const {
     sessionScheduledEmail
 } = require("../services/emailTemplates");
 
+
+// ==============================
+// CREATE SESSION
+// ==============================
+
 const createSession = async (req, res) => {
     try {
         const {
@@ -31,23 +36,30 @@ const createSession = async (req, res) => {
 
         const io = req.app.get("io");
 
-        const socketId = connectedUsers.get(learner.toString());
+        const socketId = connectedUsers.get(
+            learner.toString()
+        );
 
         if (socketId) {
-
             io.to(socketId).emit(
                 "newNotification",
                 {
-                    message: `session scheduled`,
+                    message: "Session scheduled",
                     type: "session"
                 }
             );
         }
 
         // Find learner and mentor
-        const learnerUser = await User.findById(session.learner);
-        const mentorUser = await User.findById(session.mentor);
+        const learnerUser = await User.findById(
+            session.learner
+        );
 
+        const mentorUser = await User.findById(
+            session.mentor
+        );
+
+        // Send session scheduled email
         sendEmail({
             to: learnerUser.email,
 
@@ -69,12 +81,18 @@ const createSession = async (req, res) => {
         res.status(201).json({
             message: "Session created"
         });
+
     } catch (error) {
         res.status(500).json({
             message: error.message
         });
     }
 };
+
+
+// ==============================
+// GET SESSIONS
+// ==============================
 
 const getSessions = async (req, res) => {
     try {
@@ -91,6 +109,7 @@ const getSessions = async (req, res) => {
             count: sessions.length,
             sessions
         });
+
     } catch (error) {
         res.status(500).json({
             message: error.message
@@ -98,15 +117,23 @@ const getSessions = async (req, res) => {
     }
 };
 
+
+// ==============================
+// COMPLETE SESSION
+// ==============================
+
 const completeSession = async (req, res) => {
     try {
-        const session = await Session.findById(req.params.id);
+        const session = await Session.findById(
+            req.params.id
+        );
 
         if (!session) {
             return res.status(404).json({
-                message: "Session not find"
+                message: "Session not found"
             });
         }
+
         session.status = "completed";
 
         await session.save();
@@ -114,12 +141,18 @@ const completeSession = async (req, res) => {
         res.status(200).json({
             message: "Session completed"
         });
+
     } catch (error) {
         res.status(500).json({
             message: error.message
         });
     }
 };
+
+
+// ==============================
+// EXPORT
+// ==============================
 
 module.exports = {
     createSession,
